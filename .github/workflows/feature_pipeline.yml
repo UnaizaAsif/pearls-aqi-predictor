@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install hopsworks python-dotenv requests pandas pyarrow
+        run: pip install "hopsworks[python]" python-dotenv requests pandas pyarrow confluent-kafka
 
       - name: Run feature pipeline
         env:
