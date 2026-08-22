@@ -71,6 +71,14 @@ def run():
     float_cols = ["aqi", "pm25", "pm10", "o3", "no2", "so2", "co", "temperature", "humidity", "wind", "pressure"]
     for col in float_cols:
         df[col] = df[col].astype(float)
+
+    # Derived features: aqi_lag1 and aqi_change_rate
+    # On a real-time single-run, we cannot access previous stored values easily,
+    # so we default both to 0.0. These will be populated with real values during
+    # backfill and will become meaningful as the feature store accumulates data.
+    df["aqi_lag1"] = 0.0
+    df["aqi_change_rate"] = 0.0
+
     print(df)
 
     project = hopsworks.login(

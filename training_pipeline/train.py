@@ -8,8 +8,53 @@ from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import LabelEncoder
+from sklearn.base import BaseEstimator, RegressorMixin
 import joblib
 import hopsworks
+
+# Optional TensorFlow/Keras — skipped gracefully if not installed
+try:
+    import tensorflow as tf
+    from tensorflow import keras
+
+    class KerasRegressorWrapper(BaseEstimator, RegressorMixin):
+        """Sklearn-compatible wrapper for a Keras Sequential regressor."""
+
+        def __init__(self, input_dim, epochs=50, batch_size=16):
+            self.input_dim = input_dim
+            self.epochs = epochs
+            self.batch_size = batch_size
+            self.model_ = None
+
+        def _build_model(self):
+            model = keras.Sequential([
+                keras.layers.Input(shape=(self.input_dim,)),
+                keras.layers.Dense(64, activation="relu"),
+                keras.layers.Dense(32, activation="relu"),
+                keras.layers.Dense(1, activation="linear"),
+            ])
+            model.compile(optimizer="adam", loss="mse")
+            return model
+
+        def fit(self, X, y):
+            self.model_ = self._build_model()
+            self.model_.fit(
+                X, y,
+                epochs=self.epochs,
+                batch_size=self.batch_size,
+                validation_split=0.1,
+                verbose=0,
+            )
+            return self
+
+        def predict(self, X):
+            return self.model_.predict(X, verbose=0).flatten()
+
+    TF_AVAILABLE = True
+    print("TensorFlow available — Keras model will be included.")
+except ImportError:
+    TF_AVAILABLE = False
+    print("TensorFlow not installed — Keras model will be skipped.")
 
 load_dotenv()
 
@@ -20,7 +65,8 @@ HOPSWORKS_API_KEY = os.getenv("HOPSWORKS_API_KEY")
 HOPSWORKS_PROJECT = os.getenv("HOPSWORKS_PROJECT")
 
 FEATURE_COLS = ["hour", "day_of_week", "month", "pm25",
-                "temperature", "humidity", "wind", "pressure", "city_encoded"]
+                "temperature", "humidity", "wind", "pressure", "city_encoded",
+                "aqi_lag1", "aqi_change_rate"]
 TARGET_COL = "aqi"
 
 
@@ -81,6 +127,13 @@ def train():
         "Ridge Regression": Ridge(alpha=1.0),
         "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42),
     }
+
+    if TF_AVAILABLE:
+        models["Keras Neural Network"] = KerasRegressorWrapper(
+            input_dim=len(X_train.columns),
+            epochs=50,
+            batch_size=16,
+        )
 
     best_model = None
     best_rmse = float("inf")

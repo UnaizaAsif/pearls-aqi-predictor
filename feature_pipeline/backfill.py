@@ -111,6 +111,16 @@ def run():
     for col in float_cols:
         df[col] = df[col].astype(float)
 
+    # Derived features: aqi_lag1 and aqi_change_rate computed per city
+    # Records are ordered oldest-first within each city (days_ago descending then hour ascending)
+    df = df.sort_values(["city", "timestamp"]).reset_index(drop=True)
+    df["aqi_lag1"] = df.groupby("city")["aqi"].shift(1).fillna(0.0)
+    df["aqi_change_rate"] = (df["aqi"] - df["aqi_lag1"]).fillna(0.0)
+    # First record per city has no lag — set both to 0.0
+    first_idx = df.groupby("city").head(1).index
+    df.loc[first_idx, "aqi_lag1"] = 0.0
+    df.loc[first_idx, "aqi_change_rate"] = 0.0
+
     print(f"\nTotal records: {len(df)}")
     print(df[["city", "timestamp", "aqi"]].to_string())
 
