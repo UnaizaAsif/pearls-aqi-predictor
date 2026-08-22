@@ -79,7 +79,10 @@ def load_data():
     )
     fs = project.get_feature_store()
     fg = fs.get_feature_group(name="aqi_features", version=1)
-    df = fg.read()
+    try:
+        df = fg.read()
+    except Exception:
+        df = fg.read(read_options={"use_hive": True})
     print(f"Loaded {len(df)} rows from Feature Store")
     return df, project
 
