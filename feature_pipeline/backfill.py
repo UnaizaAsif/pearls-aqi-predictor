@@ -5,11 +5,13 @@ from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import hopsworks
 import tempfile
+import platform
 
 load_dotenv()
 
-os.makedirs("C:\\tmp", exist_ok=True)
-tempfile.tempdir = "C:\\tmp"
+if platform.system() == "Windows":
+    os.makedirs("C:\\tmp", exist_ok=True)
+    tempfile.tempdir = "C:\\tmp"
 
 AQICN_TOKEN = os.getenv("AQICN_TOKEN")
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")

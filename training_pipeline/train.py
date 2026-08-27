@@ -56,10 +56,13 @@ except ImportError:
     TF_AVAILABLE = False
     print("TensorFlow not installed — Keras model will be skipped.")
 
+import platform
+
 load_dotenv()
 
-os.makedirs("C:\\tmp", exist_ok=True)
-tempfile.tempdir = "C:\\tmp"
+if platform.system() == "Windows":
+    os.makedirs("C:\\tmp", exist_ok=True)
+    tempfile.tempdir = "C:\\tmp"
 
 HOPSWORKS_API_KEY = os.getenv("HOPSWORKS_API_KEY")
 HOPSWORKS_PROJECT = os.getenv("HOPSWORKS_PROJECT")
