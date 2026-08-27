@@ -1,0 +1,10 @@
+hopsworks[python]
+python-dotenv
+pandas
+plotly
+joblib
+scikit-learn
+shap
+numpy
+pyarrow
+confluent-kafka
