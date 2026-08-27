@@ -91,6 +91,11 @@ def prepare_features(df):
     le = LabelEncoder()
     df["city_encoded"] = le.fit_transform(df["city"])
 
+    # Compute derived features from sorted history per city
+    df = df.sort_values(["city", "timestamp"]).copy()
+    df["aqi_lag1"] = df.groupby("city")["aqi"].shift(1).fillna(0.0)
+    df["aqi_change_rate"] = (df["aqi"] - df["aqi_lag1"]).fillna(0.0)
+
     df = df.dropna(subset=[TARGET_COL])
 
     available_cols = [c for c in FEATURE_COLS if c in df.columns]
