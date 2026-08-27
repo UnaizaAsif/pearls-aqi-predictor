@@ -1,4 +1,4 @@
-hopsworks[python]
+hopsworks==5.0.4
 python-dotenv
 pandas
 plotly
